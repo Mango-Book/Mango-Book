@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amazing WebRTC Call</title>
+    <title>Amazing Tech Call</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -106,16 +106,16 @@
 </head>
 <body>
     <div class="container">
-        <h1>Amazing WebRTC Call</h1>
+        <h1>Amazing Tech Call</h1>
 
         <div class="section" id="loginSection">
-            <input type="text" id="usernameInput" placeholder="Enter your username">
+            <input type="text" id="usernameInput" placeholder="Enter username darling">
             <button id="loginButton">Login</button>
         </div>
 
         <div class="section" id="callSection" style="display: none;">
             <p>Logged in as: <strong id="loggedInUser"></strong></p>
-            <input type="text" id="remoteUserInput" placeholder="Username to call">
+            <input type="text" id="remoteUserInput" placeholder="Put my id to call">
             <button id="voiceCallButton" class="call-button" disabled>Voice Call</button>
             <button id="videoCallButton" class="call-button" disabled>Video Call</button>
             <button id="hangupButton" class="hangup-button" disabled>Hang Up</button>
@@ -316,11 +316,11 @@
         async function handleCall(includeVideo) {
             const targetUsername = remoteUserInput.value.trim();
             if (!targetUsername) {
-                alert('Please enter a username to call');
+                alert('Butty please enter my id to call');
                 return;
             }
             if (targetUsername === currentUsername) {
-                alert("You can't call yourself!");
+                alert("Boobie girl You can't call yourself!");
                 return;
             }
             if (peerConnection) {
@@ -347,7 +347,7 @@
                 const offer = await peerConnection.createOffer({ offerToReceiveVideo: includeVideo });
                 await peerConnection.setLocalDescription(offer);
                 await sendSignal(remoteUsername, 'offer', offer);
-                updateCallStatus(`Offer sent to ${remoteUsername}...`);
+                updateCallStatus(`Desire to connect sent to ${remoteUsername}...`);
             } catch (error) {
                 console.error('Error creating offer:', error);
                 updateCallStatus(`Error: ${error.message}`);
@@ -417,7 +417,7 @@
             if (!incomingOfferData) return;
             if (!localStream) {
                 handleRejectCall();
-                alert('No media available to accept call');
+                alert('Butty Pie no media available to accept call');
                 return;
             }
 
@@ -503,7 +503,7 @@
             videoCallButton.disabled = !localStream;
             hangupButton.disabled = true;
             incomingCallDiv.style.display = 'none';
-            updateCallStatus(localStream ? 'Idle. Ready to call.' : 'No media available');
+            updateCallStatus(localStream ? 'Idle. Ready to call. Monika' : 'No media available Butty Baby');
         }
 
         function resetToLoginState() {
