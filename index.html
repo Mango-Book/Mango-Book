@@ -218,6 +218,7 @@
 
         <div class="section" id="callSection" style="display: none;">
             <p>Logged in as: <strong id="loggedInUser"></strong></p>
+            <button id="startMediaButton" class="call-button">Start Camera & Mic</button>
             <input type="text" id="remoteUserInput" placeholder="Put my id to call">
             <button id="voiceCallButton" class="call-button" disabled>Voice Call</button>
             <button id="videoCallButton" class="call-button" disabled>Video Call</button>
@@ -257,6 +258,7 @@
         const callSection = document.getElementById('callSection');
         const loggedInUserSpan = document.getElementById('loggedInUser');
         const remoteUserInput = document.getElementById('remoteUserInput');
+        const startMediaButton = document.getElementById('startMediaButton');
         const voiceCallButton = document.getElementById('voiceCallButton');
         const videoCallButton = document.getElementById('videoCallButton');
         const hangupButton = document.getElementById('hangupButton');
@@ -290,6 +292,7 @@
 
         // Event Listeners
         loginButton.onclick = handleLogin;
+        startMediaButton.onclick = handleStartMedia;
         voiceCallButton.onclick = () => handleCall(false);
         videoCallButton.onclick = () => handleCall(true);
         hangupButton.onclick = handleHangup;
@@ -311,13 +314,18 @@
             loginSection.style.display = 'none';
             callSection.style.display = 'block';
             videoSection.style.display = 'block';
+            updateCallStatus('Please start camera and microphone.');
+            startMediaButton.disabled = false;
+        }
 
-            const mediaStarted = await startLocalMedia(true); // Start with video capability
+        async function handleStartMedia() {
+            const mediaStarted = await startLocalMedia(true);
             if (mediaStarted) {
                 startSignalingSubscription();
                 updateCallStatus(`Logged in as ${currentUsername}. Ready to call.`);
                 voiceCallButton.disabled = false;
                 videoCallButton.disabled = false;
+                startMediaButton.disabled = true;
             } else {
                 updateCallStatus(`Logged in as ${currentUsername}, but no media devices available. Calls disabled.`);
                 alert('No camera or microphone found. Calls are disabled.');
@@ -325,20 +333,28 @@
         }
 
         async function startLocalMedia(includeVideo) {
+            console.log('Attempting to access media devices with video:', includeVideo);
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: includeVideo, audio: true });
+                console.log('Media stream acquired:', localStream);
                 localVideo.srcObject = localStream;
-                console.log('Local media stream acquired successfully');
+                console.log('Local video element updated with stream');
                 return true;
             } catch (error) {
-                console.error('Error accessing media devices:', error.name, error.message);
+                console.error('Error accessing media devices:', error.name, error.message, error);
+                let errorMessage = 'Error accessing media devices.';
                 if (error.name === 'NotFoundError') {
-                    updateCallStatus('Error: No camera or microphone found.');
+                    errorMessage = 'No camera or microphone found. Please ensure your device has a camera and microphone.';
                 } else if (error.name === 'NotAllowedError') {
-                    updateCallStatus('Error: Permission denied for media devices.');
+                    errorMessage = 'Permission denied for camera and microphone. Please allow access in your browser settings or ensure the site is loaded over HTTPS.';
+                } else if (error.name === 'SecurityError') {
+                    errorMessage = 'Media access requires a secure connection (HTTPS). Please load the site over HTTPS.';
                 } else {
-                    updateCallStatus(`Error: ${error.message}`);
+                    errorMessage = `Error: ${error.message}`;
                 }
+                console.log('Error message displayed to user:', errorMessage);
+                updateCallStatus(errorMessage);
+                alert(errorMessage);
                 return false;
             }
         }
@@ -606,7 +622,7 @@
             videoCallButton.disabled = !localStream;
             hangupButton.disabled = true;
             incomingCallDiv.style.display = 'none';
-            updateCallStatus(localStream ? 'Idle. Ready to call. Monika' : 'No media available Butty Baby');
+            updateCallStatus(localStream ? 'Idle. Ready to call.' : 'No media available. Please start camera and microphone.');
         }
 
         function resetToLoginState() {
