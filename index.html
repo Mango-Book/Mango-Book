@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazing Tech Call</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+       :root {
+        --primary-color: #4f46e5;    /* Vibrant indigo */
+        --secondary-color: #ec4899;   /* Bright pink */
+        --accent-color: #10b981;     /* Emerald green */
+        --background-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        --card-bg: rgba(255, 255, 255, 0.95);
+        --text-color: #2d3748;       /* Dark gray */
+        --shadow-color: rgba(79, 70, 229, 0.2);
+        --border-radius: 12px;
+        --box-shadow: 0 6px 20px var(--shadow-color);
+        --login-bg: linear-gradient(120deg, #1e3a8a 0%, #7c3aed 50%, #db2777 100%); /* Fancy gradient for login */
+    }
+
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: var(--background-gradient);
+        color: var(--text-color);
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+    }
+
+    .container {
+        background: var(--card-bg);
+        padding: 35px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        width: 100%;
+        max-width: 850px;
+        text-align: center;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    #loginSection {
+        background: var(--login-bg);
+        position: relative;
+        overflow: hidden;
+    }
+
+    #loginSection::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
+        animation: rotate 15s linear infinite;
+        pointer-events: none;
+    }
+
+    h1 {
+        color: #ffffff; /* White text for contrast against fancy background */
+        margin-bottom: 30px;
+        font-size: 2.2em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 1;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    h2 {
+        color: var(--text-color);
+        font-size: 1.3em;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+
+    .section {
+        margin-bottom: 30px;
+        padding: 25px;
+        border: 1px solid rgba(79, 70, 229, 0.1);
+        border-radius: var(--border-radius);
+        background: rgba(255, 255, 255, 0.8);
+        transition: transform 0.2s ease;
+    }
+
+    .section:hover {
+        transform: translateY(-2px);
+    }
+
+    input[type="text"] {
+        padding: 12px 15px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: var(--border-radius);
+        font-size: 1em;
+        margin: 8px;
+        width: 220px;
+        transition: border-color 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--text-color);
+        position: relative;
+        z-index: 1;
+    }
+
+    input[type="text"]:focus {
+        border-color: #ffffff;
+        outline: none;
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+
+    button {
+        padding: 12px 25px;
+        font-size: 1em;
+        border: none;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        color: white;
+        margin: 8px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        font-weight: 500;
+        position: relative;
+        z-index: 1;
+    }
+
+    button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    button:disabled {
+        background-color: #d1d5db;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    #loginButton {
+        background: var(--primary-color);
+    }
+
+    .call-button {
+        background: var(--accent-color);
+    }
+
+    .hangup-button {
+        background: var(--secondary-color);
+    }
+
+    .call-status {
+        margin-top: 15px;
+        font-style: italic;
+        color: var(--text-color);
+        opacity: 0.8;
+        font-size: 0.95em;
+    }
+
+    .video-container {
+        background: linear-gradient(145deg, #1f2937, #374151);
+        border-radius: var(--border-radius);
+        margin: 15px;
+        padding: 15px;
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    video {
+        width: 100%;
+        max-width: 320px;
+        background-color: #111827;
+        border-radius: 8px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .incoming-call {
+        border: 2px solid var(--primary-color);
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(236, 72, 153, 0.1));
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+    }
+
+    @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 600px) {
+        .container {
+            padding: 20px;
+        }
+        input[type="text"] {
+            width: 100%;
+            margin: 8px 0;
+        }
+        button {
+            width: 100%;
+            margin: 8px 0;
+        }
+        video {
+            max-width: 100%;
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Amazing Butty Calling!!</h1>
+
+        <div class="section" id="loginSection">
+            <input type="text" id="usernameInput" placeholder="Enter username Butty">
+            <button id="loginButton">Login</button>
+        </div>
+
+        <div class="section" id="callSection" style="display: none;">
+            <p>Logged in as: <strong id="loggedInUser"></strong></p>
+            <button id="startMediaButton" class="call-button">Start Camera & Mic</button>
+            <input type="text" id="remoteUserInput" placeholder="Put my id to call">
+            <button id="voiceCallButton" class="call-button" disabled>Voice Call</button>
+            <button id="videoCallButton" class="call-button" disabled>Video Call</button>
+            <button id="hangupButton" class="hangup-button" disabled>Hang Up</button>
+            <div class="call-status" id="callStatus">Idle</div>
+        </div>
+
+        <div class="section" id="videoSection" style="display: none;">
+            <div class="video-container">
+                <h2>Local Video</h2>
+                <video id="localVideo" autoplay muted playsinline></video>
+            </div>
+            <div class="video-container">
+                <h2>Remote Video</h2>
+                <video id="remoteVideo" autoplay playsinline></video>
+            </div>
+        </div>
+
+        <div class="section incoming-call" id="incomingCall" style="display: none;">
+            <p><strong id="callerId"></strong> is calling you!</p>
+            <button id="answerVoiceButton" class="call-button">Answer Voice</button>
+            <button id="answerVideoButton" class="call-button">Answer Video</button>
+            <button id="rejectButton" class="hangup-button">Reject</button>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Setup
+        const SUPABASE_URL = 'https://chmrdhgzprnijupfkksv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNobXJkaGd6cHJuaWp1cGZra3N2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM5MTM0MTksImV4cCI6MjA1OTQ4OTQxOX0.jy38z-vPqZ3hOKF_N0edS5CNL4lLqvJ3aIU3RQdtW5s';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // DOM Elements
+        const loginSection = document.getElementById('loginSection');
+        const usernameInput = document.getElementById('usernameInput');
+        const loginButton = document.getElementById('loginButton');
+        const callSection = document.getElementById('callSection');
+        const loggedInUserSpan = document.getElementById('loggedInUser');
+        const remoteUserInput = document.getElementById('remoteUserInput');
+        const startMediaButton = document.getElementById('startMediaButton');
+        const voiceCallButton = document.getElementById('voiceCallButton');
+        const videoCallButton = document.getElementById('videoCallButton');
+        const hangupButton = document.getElementById('hangupButton');
+        const callStatus = document.getElementById('callStatus');
+        const videoSection = document.getElementById('videoSection');
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const incomingCallDiv = document.getElementById('incomingCall');
+        const callerIdSpan = document.getElementById('callerId');
+        const answerVoiceButton = document.getElementById('answerVoiceButton');
+        const answerVideoButton = document.getElementById('answerVideoButton');
+        const rejectButton = document.getElementById('rejectButton');
+
+        // WebRTC & App State
+        let localStream;
+        let remoteStream;
+        let peerConnection;
+        let currentUsername;
+        let remoteUsername;
+        let signalingChannel;
+        let makingOffer = false;
+        let isPolite = false;
+        let incomingOfferData = null;
+
+        const configuration = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        // Event Listeners
+        loginButton.onclick = handleLogin;
+        startMediaButton.onclick = handleStartMedia;
+        voiceCallButton.onclick = () => handleCall(false);
+        videoCallButton.onclick = () => handleCall(true);
+        hangupButton.onclick = handleHangup;
+        answerVoiceButton.onclick = () => handleAnswerCall(false);
+        answerVideoButton.onclick = () => handleAnswerCall(true);
+        rejectButton.onclick = handleRejectCall;
+        usernameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleLogin(); });
+        remoteUserInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && localStream) handleCall(true); });
+
+        // Functions
+        async function handleLogin() {
+            const username = usernameInput.value.trim();
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+            currentUsername = username;
+            loggedInUserSpan.textContent = currentUsername;
+            loginSection.style.display = 'none';
+            callSection.style.display = 'block';
+            videoSection.style.display = 'block';
+            updateCallStatus('Please start camera and microphone.');
+            startMediaButton.disabled = false;
+        }
+
+        async function handleStartMedia() {
+            const mediaStarted = await startLocalMedia(true);
+            if (mediaStarted) {
+                startSignalingSubscription();
+                updateCallStatus(`Logged in as ${currentUsername}. Ready to call.`);
+                voiceCallButton.disabled = false;
+                videoCallButton.disabled = false;
+                startMediaButton.disabled = true;
+            } else {
+                updateCallStatus(`Logged in as ${currentUsername}, but no media devices available. Calls disabled.`);
+                alert('No camera or microphone found. Calls are disabled.');
+            }
+        }
+
+        async function startLocalMedia(includeVideo) {
+            console.log('Attempting to access media devices with video:', includeVideo);
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: includeVideo, audio: true });
+                console.log('Media stream acquired:', localStream);
+                localVideo.srcObject = localStream;
+                console.log('Local video element updated with stream');
+                return true;
+            } catch (error) {
+                console.error('Error accessing media devices:', error.name, error.message, error);
+                let errorMessage = 'Error accessing media devices.';
+                if (error.name === 'NotFoundError') {
+                    errorMessage = 'No camera or microphone found. Please ensure your device has a camera and microphone.';
+                } else if (error.name === 'NotAllowedError') {
+                    errorMessage = 'Permission denied for camera and microphone. Please allow access in your browser settings or ensure the site is loaded over HTTPS.';
+                } else if (error.name === 'SecurityError') {
+                    errorMessage = 'Media access requires a secure connection (HTTPS). Please load the site over HTTPS.';
+                } else {
+                    errorMessage = `Error: ${error.message}`;
+                }
+                console.log('Error message displayed to user:', errorMessage);
+                updateCallStatus(errorMessage);
+                alert(errorMessage);
+                return false;
+            }
+        }
+
+        function startSignalingSubscription() {
+            if (signalingChannel) {
+                supabaseClient.removeChannel(signalingChannel);
+            }
+
+            signalingChannel = supabaseClient.channel(`signaling:${currentUsername}`, {
+                config: { broadcast: { self: false } }
+            });
+
+            signalingChannel.on('broadcast', { event: 'signal' }, ({ payload }) => {
+                if (payload.sender !== currentUsername) {
+                    handleSignalingData(payload);
+                }
+            });
+
+            signalingChannel.subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log(`Subscribed to signaling channel for ${currentUsername}`);
+                } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                    console.error('Signaling subscription failed:', status);
+                    resetToLoginState();
+                }
+            });
+
+            window.addEventListener('beforeunload', () => hangupCall(false));
+        }
+
+        async function sendSignal(receiver, type, payload) {
+            if (!receiver || !currentUsername) return;
+            const tempChannel = supabaseClient.channel(`signaling:${receiver}`);
+            const messagePayload = { sender: currentUsername, type, payload };
+            try {
+                await tempChannel.send({
+                    type: 'broadcast',
+                    event: 'signal',
+                    payload: messagePayload
+                });
+                console.log(`Sent ${type} to ${receiver}`);
+            } catch (error) {
+                console.error(`Error sending ${type} to ${receiver}:`, error);
+            }
+        }
+
+        async function handleSignalingData(data) {
+            if (!data.sender || !data.type) return;
+            if (peerConnection && data.sender !== remoteUsername && data.type !== 'offer') return;
+
+            switch (data.type) {
+                case 'offer':
+                    if (peerConnection) return;
+                    incomingOfferData = { sender: data.sender, payload: data.payload };
+                    isPolite = true;
+                    handleOffer(data.payload, data.sender);
+                    break;
+                case 'answer':
+                    if (!peerConnection || isPolite) return;
+                    remoteUsername = data.sender;
+                    await handleAnswer(data.payload);
+                    break;
+                case 'candidate':
+                    if (!peerConnection) return;
+                    remoteUsername = remoteUsername || data.sender;
+                    await handleCandidate(data.payload);
+                    break;
+                case 'hangup':
+                    if (remoteUsername === data.sender) handleRemoteHangup();
+                    break;
+                case 'reject':
+                    if (remoteUsername === data.sender) handleCallRejected();
+                    break;
+            }
+        }
+
+        async function handleCall(includeVideo) {
+            const targetUsername = remoteUserInput.value.trim();
+            if (!targetUsername) {
+                alert('Butty please enter my id to call');
+                return;
+            }
+            if (targetUsername === currentUsername) {
+                alert("Boobie girl You can't call yourself!");
+                return;
+            }
+            if (peerConnection) {
+                alert('Already in a call');
+                return;
+            }
+            if (!localStream) {
+                alert('No media stream available. Please check your devices and permissions.');
+                return;
+            }
+
+            remoteUsername = targetUsername;
+            isPolite = false;
+            updateCallStatus(`Calling ${remoteUsername}...`);
+            voiceCallButton.disabled = true;
+            videoCallButton.disabled = true;
+            hangupButton.disabled = false;
+
+            if (!createPeerConnection()) return;
+
+            makingOffer = true;
+            try {
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+                const offer = await peerConnection.createOffer({ offerToReceiveVideo: includeVideo });
+                await peerConnection.setLocalDescription(offer);
+                await sendSignal(remoteUsername, 'offer', offer);
+                updateCallStatus(`Desire to connect sent to ${remoteUsername}...`);
+            } catch (error) {
+                console.error('Error creating offer:', error);
+                updateCallStatus(`Error: ${error.message}`);
+                hangupCall(false);
+            } finally {
+                makingOffer = false;
+            }
+        }
+
+        function createPeerConnection() {
+            try {
+                peerConnection = new RTCPeerConnection(configuration);
+                peerConnection.onicecandidate = (event) => {
+                    if (event.candidate && remoteUsername) {
+                        sendSignal(remoteUsername, 'candidate', event.candidate);
+                    }
+                };
+                peerConnection.ontrack = (event) => {
+                    if (!remoteStream) {
+                        remoteStream = new MediaStream();
+                        remoteVideo.srcObject = remoteStream;
+                    }
+                    remoteStream.addTrack(event.track);
+                    updateCallStatus(`Connected with ${remoteUsername}`);
+                    incomingCallDiv.style.display = 'none';
+                };
+                peerConnection.oniceconnectionstatechange = () => {
+                    if (!peerConnection) return;
+                    const state = peerConnection.iceConnectionState;
+                    if (state === 'failed') hangupCall(false);
+                    updateCallStatus(`Connection: ${state}`);
+                };
+                return true;
+            } catch (error) {
+                console.error('Error creating peer connection:', error);
+                updateCallStatus('Error creating connection');
+                return false;
+            }
+        }
+
+        async function handleOffer(offer, sender) {
+            if (!localStream) {
+                await sendSignal(sender, 'reject', {});
+                updateCallStatus('No media available to accept call');
+                return;
+            }
+            remoteUsername = sender;
+            callerIdSpan.textContent = sender;
+            incomingCallDiv.style.display = 'block';
+            updateCallStatus(`Incoming call from ${sender}...`);
+        }
+
+        async function handleAnswer(answer) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+            updateCallStatus(`Connected with ${remoteUsername}`);
+        }
+
+        async function handleCandidate(candidate) {
+            try {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+            } catch (error) {
+                console.error('Error adding ICE candidate:', error);
+            }
+        }
+
+        async function handleAnswerCall(includeVideo) {
+            if (!incomingOfferData) return;
+            if (!localStream) {
+                handleRejectCall();
+                alert('Butty Pie no media available to accept call');
+                return;
+            }
+
+            remoteUsername = incomingOfferData.sender;
+            incomingCallDiv.style.display = 'none';
+            hangupButton.disabled = false;
+            voiceCallButton.disabled = true;
+            videoCallButton.disabled = true;
+
+            if (!createPeerConnection()) return;
+
+            try {
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(incomingOfferData.payload));
+                const answer = await peerConnection.createAnswer({ offerToReceiveVideo: includeVideo });
+                await peerConnection.setLocalDescription(answer);
+                await sendSignal(remoteUsername, 'answer', answer);
+                updateCallStatus(`Connected with ${remoteUsername}`);
+            } catch (error) {
+                console.error('Error answering call:', error);
+                hangupCall(false);
+            } finally {
+                incomingOfferData = null;
+            }
+        }
+
+        async function handleRejectCall() {
+            if (!incomingOfferData) return;
+            const caller = incomingOfferData.sender;
+            incomingCallDiv.style.display = 'none';
+            await sendSignal(caller, 'reject', {});
+            remoteUsername = null;
+            incomingOfferData = null;
+            resetCallState();
+        }
+
+        function handleCallRejected() {
+            updateCallStatus(`Call rejected by ${remoteUsername}`);
+            hangupCall(false);
+        }
+
+        function handleRemoteHangup() {
+            updateCallStatus(`Call ended by ${remoteUsername}`);
+            hangupCall(false);
+        }
+
+        async function handleHangup() {
+            hangupCall(true);
+        }
+
+        function hangupCall(shouldSendSignal) {
+            if (shouldSendSignal && remoteUsername) {
+                sendSignal(remoteUsername, 'hangup', {});
+            }
+
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            localVideo.srcObject = null;
+
+            if (remoteStream) {
+                remoteStream = null;
+            }
+            remoteVideo.srcObject = null;
+
+            remoteUsername = null;
+            incomingOfferData = null;
+            makingOffer = false;
+            isPolite = false;
+            resetCallState();
+        }
+
+        function resetCallState() {
+            remoteUserInput.value = '';
+            remoteUserInput.disabled = false;
+            voiceCallButton.disabled = !localStream;
+            videoCallButton.disabled = !localStream;
+            hangupButton.disabled = true;
+            incomingCallDiv.style.display = 'none';
+            updateCallStatus(localStream ? 'Idle. Ready to call.' : 'No media available. Please start camera and microphone.');
+        }
+
+        function resetToLoginState() {
+            hangupCall(false);
+            if (signalingChannel) {
+                supabaseClient.removeChannel(signalingChannel);
+                signalingChannel = null;
+            }
+            currentUsername = null;
+            loginSection.style.display = 'block';
+            callSection.style.display = 'none';
+            videoSection.style.display = 'none';
+            usernameInput.value = '';
+            updateCallStatus('Please log in.');
+        }
+
+        function updateCallStatus(message) {
+            callStatus.textContent = message;
+            console.log('Status:', message);
+        }
+
+        // Initial Setup
+        loginSection.style.display = 'block';
+        callSection.style.display = 'none';
+        videoSection.style.display = 'none';
+        incomingCallDiv.style.display = 'none';
+        updateCallStatus('Please log in.');
+    </script>
+</body>
+</html>
